@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      mysqlDb:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqlDb:3306/test
+      - SPRING_DATASOURCE_USERNAME=amit
+      - SPRING_DATASOURCE_PASSWORD=1234
+    ports:
+      - "8090:9090"
+    networks:
+      - amit-network
+
+  mysqlDb:
+    image: mysql:8.0.33
+    environment:
+      MYSQL_USER: amit
+      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+    ports:
+      - "3308:3306"
+    networks:
+      - amit-network
+
+networks:
+  amit-network:
+    driver: bridge
